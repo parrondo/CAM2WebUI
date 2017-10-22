@@ -1,6 +1,6 @@
 # Python script to create JSON file of state codes mapped to state viewports in the US. 
 # See this link for extensive documentation: https://purduecam2project.github.io/CAM2WebUI/implementationDetail/load_latlngJSON.html#
-# Author: Matthew Fitzgerald & Deeptanshu Malik
+# Authors: Matthew Fitzgerald & Deeptanshu Malik
 
 from django.core.management.base import BaseCommand, CommandError
 import urllib.request, urllib.parse, urllib.error
@@ -22,7 +22,7 @@ class Command(BaseCommand):
         url = "http://www.cam2project.net/cameras/"
         html = urllib.request.urlopen(url, context=ctx).read()
         soup = BeautifulSoup(html, 'html.parser')
-		country_menu = soup.find('select', id="country").select('United States')
+        country_menu = soup.find('select', id="country").select('United States')
         state_menu = soup.find('select', id="state").find_all('option')
 
         states = {}
@@ -31,9 +31,9 @@ class Command(BaseCommand):
                 states[state['state']] =  str(state.text)
 
         return states
-		
-	def convert_states(self, states):
-		statesdict = {
+        
+    def convert_states(self, states):
+        statesdict = {
         'AK': 'Alaska',
         'AL': 'Alabama',
         'AR': 'Arkansas',
@@ -87,16 +87,16 @@ class Command(BaseCommand):
         'WI': 'Wisconsin',
         'WV': 'West Virginia',
         'WY': 'Wyoming',
-		'pa': 'Pennsylvania',
-		'nm': 'New Mexico'
-		}
-		
-		for stateabbrev, statefull in statesdict.items():
-		i = 0
-		while states 
-			if states[i] == stateabbrev
-				states[i] = statefull
-			i++			
+        'pa': 'Pennsylvania',
+        'nm': 'New Mexico'
+        }
+        
+        for stateabbrev, statefull in statesdict.items():
+            i = 0
+            while states: 
+                if states[i] == stateabbrev:
+                  states[i] = statefull
+            i = i + 1
 
     def geocode_data(self, states):
         GOOGLE_MAPS_API_URL = 'http://maps.googleapis.com/maps/api/geocode/json'
@@ -135,7 +135,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         states = self.get_states_from_webpage()
-		states = self.convertstates(states)
+        states = self.convertstates(states)
         states = self.geocode_data(states)
 
         with open('app/static/app/js/states_viewport.json', "w") as writeJSON:
