@@ -8,6 +8,8 @@
 //see documentation of google fusion tables hosted on team's github pages website to understand how to send queries to
 //fusion tables for data, how to update map layers etc.
 //
+//Currently Being Updated to include US State Zooming Capabilities
+//
 //--------------------------------------------------------------------------------------------------------------
 (function () {
 
@@ -79,6 +81,7 @@
         }));
 
         initialize_countries_viewport();
+        initialize_states_viewport();
 
         if (isMobile) {
             var legend = document.getElementById('googft-legend');
@@ -112,6 +115,18 @@
         });
     }
 
+    function initialize_states_viewport() { //Added this for state
+        $.ajax({
+            'async': false,
+            'global': false,
+            'url': "/static/app/js/states_viewport.json",
+            'dataType': "json",
+            'success': function (data) {
+                states_viewport = data;
+            }
+        });
+    }
+
     function updateMap_Country(layer, map) {
         var country = getdata_dropdown("#country");
 
@@ -133,6 +148,7 @@
 
         if (state != "('')" && state != "('undefined')") {
             updateLayer(layer, "'State' IN " + state);
+            center_on_selected_states(map);
             getCityNames();
         }
         else {
@@ -227,6 +243,48 @@
         map.fitBounds(bounds);
     }
 
+    //using geocoder to center map on country selected - see link below to for documentation and example
+    //https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple?csw=1
+    function center_on_selected_states(map) {
+        var selected_state = $("#state").select2('val');
+
+        //initiliaze with corners of first country
+        var curr_state = states_viewport[selected_states[0]];
+        maxNorthEastLat = curr_state.northeast.lat;
+        maxNorthEastLng = curr_state.northeast.lng;
+        maxSouthWestLat = curr_state.southwest.lat;
+        maxSouthWestLng = curr_state.southwest.lng;
+
+
+        for (var i = 1; i < selected_states.length; i++) {
+            var state = selected_states[i];
+            curr_state = countries_viewport[state];
+
+            var currNorthEastLat = curr_state.northeast.lat;
+            var currNorthEastLng = curr_state.northeast.lng;
+            var currSouthWestLat = curr_state.southwest.lat;
+            var currSouthWestLng = curr_state.southwest.lng;
+
+            if (maxNorthEastLat < currNorthEastLat)
+                maxNorthEastLat = currNorthEastLat;
+
+            if (maxNorthEastLng < currNorthEastLng)
+                maxNorthEastLng = currNorthEastLng;
+
+            if (maxSouthWestLat > currSouthWestLat)
+                maxSouthWestLat = currSouthWestLat;
+
+            if (maxSouthWestLng > currSouthWestLng)
+                maxSouthWestLng = currSouthWestLng;
+        }
+
+        var bounds = new google.maps.LatLngBounds();
+
+        bounds.extend(new google.maps.LatLng(maxNorthEastLat, maxNorthEastLng));
+        bounds.extend(new google.maps.LatLng(maxSouthWestLat, maxSouthWestLng));
+
+        map.fitBounds(bounds);
+    }
 
     function center_on_world(map) {
         map.setCenter(center_of_world);
